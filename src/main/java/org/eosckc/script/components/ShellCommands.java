@@ -5,6 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
@@ -29,32 +31,34 @@ public class ShellCommands {
         try {
             CSVReader reader = new CSVReader(new FileReader(fileName));
             List<String[]> groupsFromCsv= reader.readAll();
-
             Keycloak keycloak = KeycloakBuilder.builder()
                     .serverUrl(keycloakUrl)
                     .grantType(OAuth2Constants.PASSWORD)
-                    .realm(realmName)
+                    .realm("master")
                     .clientId("admin-cli")
-                    .username("admin")
+                    .username(username)
                     .password(pwd)
                     .resteasyClient(
                             new ResteasyClientBuilder()
                                     .connectionPoolSize(10).build()
                     ).build();
 
-            groupsFromCsv.stream().filter(line -> "ROR ID".equals(line[0])).map(line -> {
+            groupsFromCsv.stream().filter(line -> !"ROR ID".equals(line[0])).map(line -> {
                 GroupRepresentation group = new GroupRepresentation();
                 group.setName(line[0]);
                 group.singleAttribute("organizationName", line[1]);
                 return group;
-            }).forEach(group ->  keycloak.realm(realmName).groups().add(group));
+            }).forEach(group -> keycloak.realm(realmName).groups().add(group));
 
         }catch (FileNotFoundException e) {
-            e.printStackTrace();
+          //  e.printStackTrace();
             return fileName + " does not exist.";
         } catch (CsvException | IOException e) {
-            e.printStackTrace();
+          //  e.printStackTrace();
             return "Something goes wrong during csv file parsing";
+        } catch (Exception e) {
+           // e.printStackTrace();
+            return "General problem adding groups";
         }
 
         return "Groups have been added to "+ keycloakUrl;
