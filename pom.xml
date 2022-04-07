@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>org.eosc-kc.script</groupId>
 	<artifactId>keycloak-script</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0</version>
 	<name>keycloak-script</name>
 	<description>Execute scripts for Keycloak</description>
 	<properties>

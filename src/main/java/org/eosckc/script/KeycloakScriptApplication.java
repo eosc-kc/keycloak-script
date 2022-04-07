@@ -9,5 +9,4 @@ public class KeycloakScriptApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(KeycloakScriptApplication.class, args);
 	}
-
 }

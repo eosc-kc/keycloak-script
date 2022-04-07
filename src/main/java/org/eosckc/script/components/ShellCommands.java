@@ -5,13 +5,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jline.reader.LineReader;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.representations.idm.GroupRepresentation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
@@ -21,14 +22,21 @@ import org.keycloak.admin.client.KeycloakBuilder;
 @ShellComponent
 public class ShellCommands {
 
+    private LineReader lineReader;
+
+    @Autowired
+    public ShellCommands(@Lazy LineReader lineReader) {
+        this.lineReader = lineReader;
+    }
+
     @ShellMethod("Import groups from csv file")
-    public String addGroups(@ShellOption(help = "Csv file name") String fileName,
+    public String addGroups(@ShellOption(help = "Csv file path") String fileName,
                             @ShellOption(defaultValue = "https://login-demo.dissco.eu/auth/", help = "Keycloak server url") String keycloakUrl,
-                            @ShellOption(help = "dissco") String realmName,
-                            @ShellOption(help = "admin username") String username,
-                            @ShellOption(help = "admin password") String pwd) {
+                            @ShellOption(defaultValue ="dissco", help = "realm name") String realmName) {
 
         try {
+            String username = lineReader.readLine("Provide the admin username:");
+            String pwd = lineReader.readLine("Provide the admin password:",'*');
             CSVReader reader = new CSVReader(new FileReader(fileName));
             List<String[]> groupsFromCsv= reader.readAll();
             Keycloak keycloak = KeycloakBuilder.builder()
