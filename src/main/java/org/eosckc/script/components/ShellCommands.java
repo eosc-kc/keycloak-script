@@ -48,8 +48,17 @@ public class ShellCommands {
                 group.setName(line[0]);
                 group.singleAttribute("organizationName", line[1]);
                 return group;
-            }).forEach(group -> keycloak.realm(realmName).groups().add(group));
+            }).forEach(group -> {
+                List<GroupRepresentation> search = keycloak.realm(realmName).groups().groups(group.getName(),0,20);
+                if (search.isEmpty()) {
+                    keycloak.realm(realmName).groups().add(group);
+                } else {
+                    group.setId(search.get(0).getId());
+                    keycloak.realm(realmName).groups().group(search.get(0).getId()).update(group);
+                }
+            });
 
+            return (groupsFromCsv.size() -1)+ " groups have been added/ updating to "+ keycloakUrl;
         }catch (FileNotFoundException e) {
           //  e.printStackTrace();
             return fileName + " does not exist.";
@@ -58,9 +67,8 @@ public class ShellCommands {
             return "Something goes wrong during csv file parsing";
         } catch (Exception e) {
            // e.printStackTrace();
-            return "General problem adding groups";
+            return "General problem adding/ updating groups";
         }
 
-        return "Groups have been added to "+ keycloakUrl;
     }
 }
